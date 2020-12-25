@@ -3,25 +3,21 @@
 require_relative './day_4b.rb'
 
 describe Solution do
-  subject(:instance) { described_class.new('./isample.txt') }
-
   describe 's_to_hash' do
-    it { expect(instance.s_to_hash('aa:2 bb:3')).to eq('aa' => '2', 'bb' => '3') }
+    it { expect(described_class.s_to_hash('aa:2 bb:3')).to eq(:aa => '2', :bb => '3') }
   end
 
   describe '.str_pass_valid?' do
     let(:valid) do
-      'ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
-      byr:1937 iyr:2017 cid:147 hgt:183cm'
+      'pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980 hcl:#623a2f'
     end
 
-    it { expect(instance.str_pass_valid?(valid)).to be true }
+    it { expect(described_class.str_pass_valid?(valid)).to be true }
 
     let(:invalid) do
-      "iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884
-      hcl:#cfa07d byr:1929"
+      'eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926'
     end
 
-    it { expect(instance.str_pass_valid?(invalid)).to be false }
+    it { expect(described_class.str_pass_valid?(invalid)).to be false }
   end
 end
