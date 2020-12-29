@@ -4,19 +4,53 @@ require_relative '../data_converter.rb'
 
 module Solution
   include DataConverter
-  def call
-    group_answers = multiline('./6/input.txt', ' ')
+  def result(file)
+    rules = lines(file).map { |line| line.split(' bags contain') }
 
-    group_answers.map { |group| count_all(group) }.sum
+    containing_recurssive([], [[1, 'shiny gold']], rules).reduce(0) { |sum, b| sum + (b[0] || 0) }
   end
 
-  def count_all(string)
-    people_num = string.split(' ').count
+  def containing_recurssive(all, bags, rules)
+    inner_bags = multiple_containing(bags, rules)
 
-    uniq = string.gsub(' ', '').chars.uniq
+    return all if inner_bags.all?(&:empty?)
 
-    uniq.filter { |char| string.count(char) == people_num }.count
+    all_updated = all + inner_bags
+
+    containing_recurssive(all_updated, inner_bags, rules)
+  end
+
+  def multiple_containing(bags, rules)
+    bags.reduce([]) { |result, bag| result + containing(bag, rules) }
+  end
+
+  def containing(bag, rules)
+    parent_quantity, parent_type = bag
+    puts "parent_quantity: #{parent_quantity}"
+
+    puts "parent_type: #{parent_type}"
+    bags_inside = rules.filter { |pair| pair[0] == parent_type }[0]
+
+    bags_inside = bags_inside ? bags_inside[1].strip : nil
+    puts "bags_inside: #{bags_inside}"
+    normalize(bags_inside, parent_quantity)
+  end
+
+  def normalize(string, parent_quantity)
+    return [] unless string
+
+    string.split(',').map do |bag_type|
+      quantity = bag_type.split(' ')[0].to_i * parent_quantity
+      type = bag_type.split(' ')[1] + ' ' + bag_type.split(' ')[2]
+      quantity.zero? ? [] : [quantity, type]
+    end
+  end
+
+  def call
+    result('./7/input.txt')
+  end
+
+  def call_sample
+    result('./7/sample2.txt')
   end
 end
-
-# Solution getting file and Solver class.

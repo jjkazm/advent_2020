@@ -6,4 +6,8 @@ module DataConverter
         .map { |el| el == '' ? 'split' : el }
         .join(delimiter).split('split')
   end
+
+  def lines(file)
+    File.readlines(file).map(&:chomp)
+  end
 end
