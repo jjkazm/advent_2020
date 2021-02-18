@@ -1,72 +1,66 @@
 require_relative '../data_converter'
 
 module Solution
+  DIRECTIONS = %w[N E S W].freeze
   include DataConverter
   def result(file)
-    rows = lines(file)
-    puts rows.class
-
-    multiple_arr_toggle(rows)
+    insts = lines(file).map { |line| [line[0], line[1..-1].to_i] }
+    count(steps({ 'E' => 10, 'N' => 1 }, insts))
   end
 
-  def multiple_arr_toggle(arr)
-    prev = ''
+  def count(hash)
+    (hash['E'] - hash['W']).abs + (hash['N'] - hash['S']).abs
+  end
 
-    while prev != arr
-      prev = arr
-      arr = toggle_array(arr)
+  def steps(initial, instructions)
+    result = { 'N' => 0, 'E' => 0, 'S' => 0, 'W' => 0 }
+    waypoint = initial
+    instructions.each do |i|
+      puts "instruction: #{i}, result: #{result}"
+      case i[0]
+      when 'R', 'L'
+        waypoint = rotate_waypoint(waypoint, i[0], i[1])
+      when 'F'
+        waypoint.keys.each { |direction| result[direction] += i[1] * waypoint[direction] }
+      else
+
+        waypoint = move_waypoint(waypoint, i[0], i[1])
+      end
     end
-    count_seated(arr)
+    result
   end
 
-  def toggle(value, seated_neighbours)
-    return '#' if value == 'L' && seated_neighbours.zero?
-    return 'L' if value == '#' && seated_neighbours > 4
-
-    value
+  def rotate_waypoint(initial, direction, val)
+    initial.keys.map { |k| [change_dir(k, direction, val), initial[k]] }.to_h
   end
 
-  def toggle_array(arr)
-    arr.map.with_index do |line, row|
-      line.chars.map.with_index do |val, column|
-        toggle(val, seated_neighbours_count(row, column, arr))
-      end.join('')
+  def move_waypoint(initial, direction, val)
+    opposites = { 'S' => 'N', 'N' => 'S', 'E' => 'W', 'W' => 'E' }
+
+    if initial[direction].nil?
+      oppo_dir = opposites[direction]
+      initial[oppo_dir] -= val
+      if initial[oppo_dir] < 0
+        initial[direction] = -initial[oppo_dir]
+        initial.delete(oppo_dir)
+      end
+    else
+      initial[direction] += val
     end
+    initial
   end
 
-  def count_seated(arr)
-    arr.join.count('#')
-  end
-
-  def seated_neighbours_count(row, column, arr)
-    result = ''
-    result << neighbour(row, column, 0, 1, arr)
-    result << neighbour(row, column, 0, -1, arr)
-    result << neighbour(row, column, 1, 0, arr)
-    result << neighbour(row, column, 1, 1, arr)
-    result << neighbour(row, column, 1, -1, arr)
-    result << neighbour(row, column, -1, 0, arr)
-    result << neighbour(row, column, -1, 1, arr)
-    result << neighbour(row, column, -1, -1, arr)
-
-    result.count('#')
-  end
-
-  def neighbour(row, column, horizontal, vertical, arr)
-    return '' if row + horizontal < 0 || row + horizontal >= arr.length
-    return '' if column + vertical < 0 || column + vertical >= arr[row].length
-
-    n = arr[row + horizontal][column + vertical]
-    return n if %w[L #].include?(n)
-
-    neighbour(row + horizontal, column + vertical, horizontal, vertical, arr)
+  def change_dir(initial, direction, val)
+    init = DIRECTIONS.index initial
+    change = direction == 'R' ? val / 90 : val / -90
+    DIRECTIONS[(change + init) % 4]
   end
 
   def call
-    result('./11/input.txt')
+    result('./12/input.txt')
   end
 
   def call_sample
-    result('./11/sample.txt')
+    result('./12/sample.txt')
   end
 end
